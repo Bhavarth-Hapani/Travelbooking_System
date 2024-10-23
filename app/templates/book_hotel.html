@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Book Hotel
+{% endblock %}
+
+{% block content %}
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Book Hotel</title>
+  </head>
+  <body>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        margin: 0;
+        padding: 0;
+      }
+      
+      
+      form {
+        max-width: 500px;
+        margin: 40px auto;
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+      }
+      
+      label {
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: black;
+        font-size: 16px;
+      }
+      
+      input[type='text'],
+      input[type='number'],
+      input[type='date'],
+      select {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+        font-size: 16px;
+      }
+      
+      input[type='submit'] {
+        background-color: #28a745;
+        color: white;
+        padding: 12px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s ease;
+        align-self: center;
+        width: 60%;
+      }
+      
+      input[type='submit']:hover {
+        background-color: #218838;
+      }
+      
+      p {
+        margin: 0;
+        padding: 0;
+      }
+      
+      #person-error {
+        color: red;
+        font-size: 0.9em;
+        display: none;
+      }
+      
+      .alert {
+        padding: 10px;
+        margin: 20px 0;
+        border-radius: 4px;
+      }
+      
+      .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+      }
+      
+      .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+      
+      .flash-message {
+        text-align: left;
+        margin-top: 20px;
+        width: 20%;
+      }
+      
+      select {
+        background-color: white;
+        border: 1px solid #ccc;
+        font-size: 16px;
+        color: #333;
+        height: 40px;
+        border-radius: 4px;
+        appearance: none;
+      }
+      
+      input[readonly] {
+        background-color: #f9f9f9;
+        cursor: not-allowed;
+      }
+      
+      @media (max-width: 600px) {
+        form {
+          padding: 20px;
+          max-width: 90%;
+        }
+      
+        input[type='submit'] {
+          width: 100%;
+        }
+      }
+    </style>&nbsp;
+    <h2>Book Your Hotel Here</h2>
+    {% if message %}
+      <p style="color: green;">{{ message }}</p>
+    {% elif error %}
+      <p style="color: red;">{{ error }}</p>
+    {% endif %}
+
+    {% with messages=get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div>
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} flash-message">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Hotel booking form -->
+    <form action="{{ url_for('book_hotel') }}" method="POST">
+      <!-- Dropdown for selecting a hotel -->
+      <label for="hotel_select">Select Your Hotel:</label>
+      <select id="hotel_select" name="hotel_id" onchange="updateHotelDetails()">
+        <option value="" disabled selected>Select your hotel</option>
+        {% for hotel in hotels %}
+          <option value="{{ hotel.id }}" data-price="{{ hotel.price }}" data-availability="{{ hotel.availability }}">{{ hotel.hotel_name }} - {{ hotel.location }} || Availability: {{ hotel.availability }} || Price: {{ hotel.price }}</option>
+        {% endfor %}
+      </select>
+
+      <!-- Hotel Price (readonly) -->
+      <label for="hotel_price">Price (/Person):</label>
+      <input type="text" id="hotel_price" name="price" readonly />
+
+      <!-- Booking Date Field -->
+      <label for="booking_date">Booking Date:</label>
+      <input type="date" id="booking_date" name="booking_date" required min="{{ current_date }}" />
+
+      <!-- No_of_Person Field -->
+      <label for="no_of_person">Number of Persons:</label>
+      <input type="number" id="no_of_person" name="no_of_person" min="1" value="1" onchange="validatePersons()" required />
+      <p id="person-error" style="color: red; display: none;">Number of persons cannot exceed hotel availability.</p>
+
+      <!-- Total Price Field (readonly) -->
+      <label for="total_price">Total Price:</label>
+      <input type="text" id="total_price" name="total_price" readonly />
+
+      <input type="submit" value="Book My Hotel" />
+    </form>
+
+    <!-- Display success or error message -->
+  </body>
+
+  <script>
+    let hotelAvailability = 0
+    let hotelPrice = 0
+    
+    function updateHotelDetails() {
+      const selectElement = document.getElementById('hotel_select')
+      const selectedOption = selectElement.options[selectElement.selectedIndex]
+    
+      hotelPrice = parseFloat(selectedOption.getAttribute('data-price'))
+      hotelAvailability = parseInt(selectedOption.getAttribute('data-availability'))
+    
+      // Set the price per person
+      document.getElementById('hotel_price').value = hotelPrice ? hotelPrice : 'Price not available'
+    
+      // Update total price if no_of_person is already entered
+      validatePersons()
+    }
+    
+    //For No_of_Person Field
+    function validatePersons() {
+      const noOfPersons = parseInt(document.getElementById('no_of_person').value)
+    
+      if (noOfPersons > hotelAvailability) {
+        document.getElementById('person-error').style.display = 'block'
+        document.getElementById('total_price').value = ''
+      } else {
+        document.getElementById('person-error').style.display = 'none'
+        calculateTotalPrice(noOfPersons)
+      }
+    }
+    
+    //For total_price Field
+    function calculateTotalPrice(noOfPersons) {
+      if (noOfPersons && hotelPrice) {
+        const totalPrice = noOfPersons * hotelPrice
+        document.getElementById('total_price').value = totalPrice.toFixed(2)
+      } else {
+        document.getElementById('total_price').value = ''
+      }
+    }
+    
+    window.setTimeout(function () {
+      const flashMessages = document.querySelectorAll('.flash-message')
+      flashMessages.forEach(function (flashMessage) {
+        flashMessage.style.display = 'none'
+      })
+    }, 3000)
+  </script>
+{% endblock %}

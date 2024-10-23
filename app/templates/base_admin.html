@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {% block title %}
+        Admin_Base
+      {% endblock %}
+    </title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='adminpanel_style.css') }}" />
+  </head>
+  <style>
+    .flash-message {
+      color: black;
+    }
+  </style>
+  <body>
+    <header>
+      <div class="navbar">
+        <a href="admin_user">Users</a>
+        <a href="admin_flight">Flight</a>
+        <a href="admin_hotel">Hotel</a>
+        <a href="admin_package">Package</a>
+        <a href="logout">Logout</a>
+      </div>
+      <div>
+        {% with messages=get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div>
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }} flash-message">
+                  <h4>{{ message }}!!!</h4>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+      </div>
+    </header>
+
+    <main class="container">
+      {% block content %}
+
+      {% endblock %}
+    </main>
+  </body>
+  <script>
+    window.setTimeout(function () {
+      const flashMessages = document.querySelectorAll('.flash-message')
+      flashMessages.forEach(function (flashMessage) {
+        flashMessage.style.display = 'none'
+      })
+    }, 3000) // Flash messages will disappear after 3 seconds
+  </script>
+</html>

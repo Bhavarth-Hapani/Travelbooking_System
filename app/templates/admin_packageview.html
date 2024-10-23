@@ -1,0 +1,128 @@
+{% extends 'base_admin.html' %}
+
+{% block title %}
+  Admin Panel - Package View
+{% endblock %}
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Package Booking</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='adminpanel_style.css') }}" />
+</head>
+
+{% block content %}
+  <body>
+    <div class="admin-container">
+      <h2>Add Package</h2>
+      <form action="{{ url_for('add_package') }}" method="POST">
+        <div>
+          <table style="color:blue; align-self: center;">
+            <tr>
+              <td>
+                <label for="pack_flight_number">Flight Number:</label>
+                <input type="text" id="pack_flight_number" name="pack_flight_number" style="width: 100px;" required />
+              </td>
+              <td>
+                <label for="pack_flight_departure">Flight Departure:</label>
+                <input type="text" id="pack_flight_departure" name="pack_flight_departure" style="width: 120px;" required />
+              </td>
+              <td>
+                <label for="pack_flight_destination">Flight Destination:</label>
+                <input type="text" id="pack_flight_destination" name="pack_flight_destination" style="width: 120px;" required />
+              </td>
+              <td>
+                <label for="pack_hotel_name">Hotel Name:</label>
+                <input type="text" id="pack_hotel_name" name="pack_hotel_name" style="width: 200px;" required />
+              </td>
+              <td>
+                <label for="pack_hotel_location">Hotel Location:</label>
+                <input type="text" id="pack_hotel_location" name="pack_hotel_location" style="width: 120px;" required />
+              </td>
+              <td>
+                <label for="pack_availability">Availability:</label>
+                <input type="number" id="pack_availability" name="pack_availability" style="width: 75px;" required />
+              </td>
+              <td>
+                <label for="pack_price">Price:</label>
+                <input type="number" id="pack_price" name="pack_price" style="width: 80px;" required />
+              </td>
+              <td>
+                <button type="submit" style="width: 100px;"><b>Add Package</b></button>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </form>
+    </div>
+
+    <div class="admin-container">
+      <h2>User Package Bookings</h2>
+
+      {% if message %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endif %}
+
+      <table>
+        <thead>
+          <tr>
+            <th>User ID</th>
+            <th>User Name</th>
+            <th>Flight Number</th>
+            <th>Flight Departure</th>
+            <th>Flight Destination</th>
+            <th>Hotel Name</th>
+            <th>Hotel Location</th>
+            <th>Availability(After Booked Pack)</th>
+            <th>Price (/Person)</th>
+            <th>Number of Persons</th>
+            <th>Total Price</th>
+            <th>Status</th>
+            <th style="width: 10%;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for booking in user_bookings %}
+            <tr>
+              <td>{{ booking.user_id }}</td>
+              <td>{{ booking.user.username }}</td>
+              <td>{{ booking.package.pack_flight_number }}</td>
+              <td>{{ booking.package.pack_flight_departure }}</td>
+              <td>{{ booking.package.pack_flight_destination }}</td>
+              <td>{{ booking.package.pack_hotel_name }}</td>
+              <td>{{ booking.package.pack_hotel_location }}</td>
+              <td>{{ booking.package.pack_availability }}</td>
+              <td>{{ booking.package.pack_price }}</td>
+              <td>{{ booking.num_of_people }}</td>
+              <td>{{ booking.total_price }}</td>
+              <td>{{ booking.status }}</td>
+              <td>
+                {% if booking.status == True %}
+                  <form action="{{ url_for('edit_package_booking', booking_id=booking.id, package_id=booking.package_id) }}" method="GET" style="display:inline;">
+                    <button type="submit" class="btn btn-warning">Edit</button>
+                  </form>
+
+                  <form action="{{ url_for('admin_manage_user_booking') }}" method="POST">
+                    <input type="hidden" name="booking_id" value="{{ booking.id }}" />
+                    <input type="hidden" name="booking_type" value="package" /><br/>
+                    <button type="submit" class="btn" style="display:inline;background-color: crimson;" onclick="return confirmCancel();"><b>Cancel</b></button>
+                  </form>
+
+                {% else %}
+                  <form action="{{ url_for('delete_package_booking', booking_id=booking.id) }}" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                  </form>
+                {% endif %}
+                <script>
+                  function confirmCancel() {
+                    return confirm('Are you sure you want to cancel the Package?')
+                  }
+                </script>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </body>
+{% endblock %}

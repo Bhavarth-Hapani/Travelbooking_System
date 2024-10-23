@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Book Flight
+{% endblock %}
+
+{% block content %}
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Book Flight</title>
+  </head>
+
+  <body>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+      }
+      
+      form {
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 20px;
+        width: 80%;
+        max-width: 500px;
+        margin: 0 auto;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+        color: #333;
+      }
+      
+      select,
+      input[type='number'],
+      input[type='text'] {
+        width: calc(100% - 20px);
+        padding: 8px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 1em;
+        color: #333;
+      }
+      
+      select:focus,
+      input:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+      }
+      
+      #flight_price,
+      #total_price {
+        background-color: #f9f9f9;
+      }
+      
+      .btn {
+        display: inline-block;
+        background-color: #28a745;
+        color: white;
+        padding: 10px 20px;
+        text-align: center;
+        border-radius: 4px;
+        font-size: 1em;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      
+      .btn:hover {
+        background-color: #218838;
+      }
+      
+      p {
+        margin: 0;
+        padding: 0;
+      }
+      
+      .flash-message {
+        background-color: #f8d7da;
+        color: #721c24;
+        padding: 10px;
+        border-radius: 4px;
+        margin: 10px 0;
+        width: 80%;
+        max-width: 500px;
+        margin: 10px auto;
+      }
+      
+      #person-error {
+        color: #dc3545;
+        font-size: 0.9em;
+      }
+
+      
+    </style>&nbsp;
+    <h2>Book Your Flight Here</h2>
+    {% if message %}
+      <p style="color: green;">{{ message }}</p>
+    {% elif error %}
+      <p style="color: red;">{{ error }}</p>
+    {% endif %}
+
+    {% with messages=get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div>
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} flash-message">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Flight booking form -->
+    <form action="{{ url_for('book_flight') }}" method="POST">
+      <!-- Dropdown for selecting a flight -->
+      <label for="flight_select">Select Your Flight:</label>
+      <select id="flight_select" name="flight_id" onchange="updateFlightDetails()">
+        <option value="" disabled selected>Select your flight</option>
+        {% for flight in bookings %}
+          <option value="{{ flight.id }}" data-price="{{ flight.price }}" data-availability="{{ flight.availability }}">{{ flight.flight_number }} - {{ flight.departure }} to {{ flight.destination }} || Availability: {{ flight.availability }}</option>
+        {% endfor %}
+      </select>
+      <br /><br />
+
+      <!-- Flight Price (readonly) -->
+      <label for="flight_price">Price (per person):</label>
+      <input type="text" id="flight_price" name="price" readonly />
+      <br /><br />
+
+      <!-- No_of_Person Field -->
+      <label for="no_of_person">Number of Persons:</label>
+      <input type="number" id="no_of_person" name="no_of_person" min="1" value="1" onchange="validatePersons()" required />
+      <p id="person-error" style="color: red; display: none;">Number of persons cannot exceed flight availability.</p>
+      <br /><br />
+
+      <!-- Total Price Field (readonly) -->
+      <label for="total_price">Total Price:</label>
+      <input type="text" id="total_price" name="total_price" readonly />
+      <br /><br />
+      <p style="padding-left: 30%; ">
+        <input type="submit" value="Book My Flight" style="background-color: #28a745; color: white; height: 40px; border: 0px; width: 200px; border-radius: 4px;" />
+      </p>
+    </form>
+  </body>
+
+  <script>
+    let flightAvailability = 0
+    let flightPrice = 0
+    
+    function updateFlightDetails() {
+      const selectElement = document.getElementById('flight_select')
+      const selectedOption = selectElement.options[selectElement.selectedIndex]
+    
+      flightPrice = parseFloat(selectedOption.getAttribute('data-price'))
+      flightAvailability = parseInt(selectedOption.getAttribute('data-availability'))
+    
+      // Set the price per person
+      document.getElementById('flight_price').value = flightPrice ? flightPrice : 'Price not available'
+    
+      // Update total price if number of persons is already entered
+      validatePersons() // Validate persons after updating flight details
+    }
+    
+    //For No_of_Person Field
+    function validatePersons() {
+      const noOfPersons = parseInt(document.getElementById('no_of_person').value)
+    
+      if (isNaN(noOfPersons) || noOfPersons <= 0) {
+        document.getElementById('person-error').innerText = 'Please enter a valid number of persons.'
+        document.getElementById('person-error').style.display = 'block'
+        document.getElementById('total_price').value = ''
+      } else if (noOfPersons > flightAvailability) {
+        document.getElementById('person-error').innerText = `Number of persons cannot exceed flight availability (${flightAvailability}).`
+        document.getElementById('person-error').style.display = 'block'
+        document.getElementById('total_price').value = ''
+      } else {
+        document.getElementById('person-error').style.display = 'none'
+        calculateTotalPrice(noOfPersons) // Calculate total price only if validation passes
+      }
+    }
+    
+    //For total_price Field
+    function calculateTotalPrice(noOfPersons) {
+      if (noOfPersons && flightPrice) {
+        const totalPrice = noOfPersons * flightPrice
+        document.getElementById('total_price').value = totalPrice.toFixed(2)
+      } else {
+        document.getElementById('total_price').value = ''
+      }
+    }
+    
+    window.addEventListener('DOMContentLoaded', function () {
+      window.setTimeout(function () {
+        const flashMessages = document.querySelectorAll('.flash-message')
+        flashMessages.forEach(function (flashMessage) {
+          flashMessage.style.display = 'none'
+        })
+      }, 3000)
+    })
+  </script>
+{% endblock %}

@@ -1,0 +1,149 @@
+:root {
+    --primary-color: #000000;
+    --primary-light: #a5a5a5;
+    --primary-dark: #003bbf;
+    --text-color: #333;
+    --background-color: #f4f4f4;
+    --white: #ffffff;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    height: 100vh;
+    display: flex;  
+    flex-direction: column; /* Adjusted for header, main, footer structure */
+}
+
+a {
+    color: var(--primary-color);
+    text-decoration: none; /* Remove underline */
+    transition: color 0.3s; /* Smooth transition for color */
+}
+
+a:hover {
+    color: var(--primary-dark); /* Darker color on hover */
+}
+
+header {
+    background-color: var(--primary-light);
+    padding: 5px; /* Reduced padding */
+    text-align: center;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+nav ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    text-align: center;
+}
+
+nav ul li {
+    display: inline;
+    margin-right: 15px; /* Adjusted margin */
+    font-size: 1rem; /* Optional: Adjust font size for better fit */
+}
+
+nav ul li:last-child {
+    margin-right: 0; /* No margin on the last item */
+}
+
+
+footer {
+    background-color: var(--primary-light);
+    color: #000000;
+    text-align: center;
+    /*padding: 5px 0; /* Added padding for better appearance */
+    position: fixed;
+    bottom: 0;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    height: 50px;
+}
+
+main {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+    margin-top: 80px;
+    margin-bottom: 60px;
+    box-sizing: border-box;
+    height: calc(100vh - 140px);
+}
+
+h1 {
+    color: #0a1e79;
+    margin-top: 0;
+    font-size: 2rem; /* Increased font size */
+}
+
+h2 {
+    color: var(--text-color);
+    font-size: 1.5rem; /* Consistent heading sizes */
+}
+
+p {
+    font-size: 1.2rem;
+    line-height: 1.6;
+}
+
+form {
+    max-width: 650px;
+    margin: 20px auto; /* Margin added for better spacing */
+    padding: 20px;
+    background-color: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Increased shadow for depth */
+    transition: box-shadow 0.3s; /* Smooth shadow transition */
+}
+
+form:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2); /* Shadow on hover */
+}
+
+.form-label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: var(--white);
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s; /* Added transform for effect */
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-2px); /* Subtle lift effect */
+}
+
+@media (max-width: 768px) {
+    nav ul li {
+        display: block;
+        margin: 5px 0;
+    }
+
+    form {
+        padding: 15px;
+    }
+
+    h1 {
+        font-size: 1.8rem; /* Responsive heading size */
+    }
+
+    h2 {
+        font-size: 1.4rem; /* Responsive heading size */
+    }
+}

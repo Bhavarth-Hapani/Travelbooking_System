@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    {% block head %}
+      <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+      <title>
+        {% block title %}
+          Base
+        {% endblock %}
+      </title>
+    {% endblock %}
+  </head>
+ <header>
+      <h1>Travel Booking System</h1>
+      <nav>
+        <div>
+          <a href="/"><b>Home</b></a> |
+          <a href="/about"><b>About</b></a> |
+          <a href="/contact"><b>Contact Us</b></a> |
+        </div>
+        {% if session.get('user') %}
+          <!-- when user is logged in... -->
+          <div>
+            <span style="float: right; margin-right: 15px;">
+              <b>User Name: {{ session.user.username }}</b> |
+              <a href="/logout"><b>Logout</b></a>
+            </span>
+          </div>
+        {% else %}
+          <!-- when not logged in.... -->
+          <div>
+            <a href="/login"><b>Login</b></a> |
+            <a href="/register"><b>Register</b></a>
+          </div>
+          <div>
+            {% with messages=get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <div>
+                  {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} flash-message">
+                      <h4>{{ message }}!!!</h4>
+                    </div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
+          </div>
+        {% endif %}
+      </nav>
+    </header>
+
+  <body>
+   
+    <main>
+      {% block content %}
+
+      <p><b>Welcome To The Admin Side...</b></p>
+
+      {% endblock %}
+    </main>
+
+    <footer>
+      
+        <b>&copy; 2024 My Flask App</b>
+      
+    </footer>
+    <script>
+      window.setTimeout(function () {
+        const flashMessages = document.querySelectorAll('.flash-message')
+        flashMessages.forEach(function (flashMessage) {
+          flashMessage.style.display = 'none'
+        })
+      }, 3000) // Flash messages will disappear after 3 seconds
+    </script>
+  </body>
+</html>

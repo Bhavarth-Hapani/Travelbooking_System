@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Manage User Bookings
+{% endblock %}
+
+{% block content %}
+  <h2>Manage All Your Bookings</h2>
+
+  <style>
+    .container {
+      width: 90%;
+      margin: 0 auto;
+      margin-top: 20px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      table-layout: auto;
+    }
+    
+    table,
+    th,
+    td {
+      border: 2px solid #ddd;
+    }
+    
+    th,
+    td {
+      padding: 12px 10px;
+      text-align: left;
+      white-space: normal;
+      word-wrap: break-word;
+      height: 10px;
+      overflow: hidden;
+    }
+    
+    th {
+      background-color: #f2f2f2;
+      text-align: left;
+    }
+    
+    tbody tr:hover {
+      background-color: #f9f9f9;
+    }
+    
+    button {
+      padding: 8px 12px;
+      background-color: #ff4d4d;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+    }
+    
+    button:hover {
+      background-color: #d43f3f;
+    }
+    
+    p {
+      box-sizing: border-box;
+      font-size: 14px;
+      text-align: center;
+      flex: auto;
+    }
+    
+    th.action-col,
+    td.action-col {
+      width: 12%;
+      text-align: center;
+    }
+  </style>
+
+  {% if message %}
+    <p style="color: darkgreen;">{{ message }}</p>
+  {% endif %}
+
+  {% with messages=get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div>
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} flash-message">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="container">
+    <!-- Flight Bookings Table -->
+    <h2>Manage Your Flight Bookings</h2>
+    {% if flight_bookings %}
+      <table>
+        <thead>
+          <tr>
+            <th>User Name</th>
+            <th>Flight Number</th>
+            <th>Departure</th>
+            <th>Destination</th>
+            <th>Departure Date</th>
+            <th>Return Date</th>
+            <th>Price(/Person)</th>
+            <th>No. of Persons</th>
+            <th>Availability</th>
+            <th>Total Price</th>
+            <th class="action-col">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for booking in flight_bookings %}
+            <tr>
+              <td>{{ booking.user.username }}</td>
+              <td>{{ booking.flight.flight_number }}</td>
+              <td>{{ booking.flight.departure }}</td>
+              <td>{{ booking.flight.destination }}</td>
+              <td>{{ booking.flight.departure_date }}</td>
+              <td>{{ booking.flight.return_date }}</td>
+              <td>{{ booking.flight.price }}</td>
+              <td>{{ booking.num_of_people }}</td>
+              <td>{{ booking.flight.availability }}</td>
+              <td>{{ booking.total_price }}</td>
+              <td class="action-col">
+                <form action="{{ url_for('manage_user_booking') }}" method="POST">
+                  {% if booking.status == True %}
+                    <input type="hidden" name="booking_id" value="{{ booking.id }}" />
+                    <input type="hidden" name="booking_type" value="flight" />
+                    <button type="submit" onclick="return confirmCancel();"><b>Cancel Flight</b></button>
+                  {% else %}
+                    <p disabled style="color: white; background : green; border-radius: 5px; margin: 0px ;padding: 0px;">
+                      <b>Canceled Successfull</b>
+                    </p>
+                  {% endif %}
+                </form>
+                <script>
+                  function confirmCancel() {
+                    return confirm('Are you sure you want to cancel the flight?')
+                  }
+                </script>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>No flight bookings found.</p>
+    {% endif %}
+
+    <!-- Hotel Bookings Table -->
+    <h2>Manage Your Hotel Bookings</h2>
+    {% if hotel_bookings %}
+      <table>
+        <thead>
+          <tr>
+            <th>User Name</th>
+            <th>Hotel Name</th>
+            <th>Location</th>
+            <th>Availability</th>
+            <th>No. of Persons</th>
+            <th>Booking Date</th>
+            <th>Total Price</th>
+            <th class="action-col">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for booking in hotel_bookings %}
+            <tr>
+              <td>{{ booking.user.username }}</td>
+              <td>{{ booking.hotel.hotel_name }}</td>
+              <td>{{ booking.hotel.location }}</td>
+              <td>{{ booking.hotel.availability }}</td>
+              <td>{{ booking.no_of_person }}</td>
+              <td>{{ booking.booking_date.strftime('%Y-%m-%d') }}</td>
+              <td>{{ booking.total_price }}</td>
+              <td class="action-col">
+                <form action="{{ url_for('manage_user_booking') }}" method="POST">
+                  {% if booking.status == True %}
+                    <input type="hidden" name="booking_id" value="{{ booking.id }}" />
+                    <input type="hidden" name="booking_type" value="hotel" />
+                    <button type="submit" onclick="return confirmCancel();"><b>Cancel Hotel</b></button>
+                  {% else %}
+                    <p disabled style="color: white; background : green; border-radius: 5px; margin: 0px ;padding: 0px; ">
+                      <b>Canceled Successfull</b>
+                    </p>
+                  {% endif %}
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>No hotel bookings found.</p>
+    {% endif %}
+
+    <!-- Package Bookings Table -->
+    <h2>Manage Your Package Bookings</h2>
+    {% if user_bookings %}
+      <table>
+        <thead>
+          <tr>
+            <th>User Name</th>
+            <th>Flight Number</th>
+            <th>Flight Departure</th>
+            <th>Flight Destination</th>
+            <th>Hotel Name</th>
+            <th>Hotel Location</th>
+            <th>Availability</th>
+            <th>Price (/Person)</th>
+            <th>NO Of Persons</th>
+            <th>Total Price</th>
+            <th class="action-col">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for booking in user_bookings %}
+            <tr>
+              <td>{{ booking.user.username }}</td>
+              <td>{{ booking.package.pack_flight_number }}</td>
+              <td>{{ booking.package.pack_flight_departure }}</td>
+              <td>{{ booking.package.pack_flight_destination }}</td>
+              <td>{{ booking.package.pack_hotel_name }}</td>
+              <td>{{ booking.package.pack_hotel_location }}</td>
+              <td>{{ booking.package.pack_availability }}</td>
+              <td>{{ booking.package.pack_price }}</td>
+              <td>{{ booking.num_of_people }}</td>
+              <td>{{ booking.total_price }}</td>
+              <td class="action-col">
+                <form action="{{ url_for('manage_user_booking') }}" method="POST">
+                  {% if booking.status == True %}
+                    <input type="hidden" name="booking_id" value="{{ booking.id }}" />
+                    <input type="hidden" name="booking_type" value="package" />
+                    <button type="submit"><b>Cancel Package</b></button>
+                  {% else %}
+                    <p disabled style="color: white; background : green; border-radius: 5px; margin: 0px ;padding: 0px; ">
+                      <b>Canceled Successfull</b>
+                    </p>
+                  {% endif %}
+                </form>
+
+                <script>
+                  function confirmCancel() {
+                    return confirm('Are you sure you want to cancel the flight?')
+                  }
+                </script>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>No package bookings found.</p>
+    {% endif %}
+  </div>
+{% endblock %}

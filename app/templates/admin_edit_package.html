@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit Package</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='adminpanel_style.css') }}" />
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 20px;
+      }
+      
+      .admin-container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      
+      h2 {
+        text-align: center;
+        color: #333;
+      }
+      
+      label {
+        display: block;
+        margin: 10px 0 5px;
+        color: #555;
+      }
+      
+      input[type='text'],
+      input[type='number'] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+      
+      button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        width: 100%;
+        font-size: 16px;
+      }
+      
+      button:hover {
+        background-color: #0056b3;
+      }
+      
+      .cancel-button {
+        background-color: #dc3545;
+        margin-top: 10px;
+      }
+      
+      .cancel-button:hover {
+        background-color: #c82333;
+      }
+    </style>
+
+    <script>
+      function calculateTotalPriceAndAvailability() {
+        const noOfPeople = parseInt(document.getElementById('num_of_people').value)
+        const noOfPeopleOrg = parseInt(document.getElementById('num_of_people_org').value)
+        const pricePerPerson = parseFloat(document.getElementById('pack_price').value)
+        const initialAvailability = parseInt(document.getElementById('initial_availability').value)
+      
+        // Calculate total price
+        if (noOfPeople && pricePerPerson) {
+          const totalPrice = noOfPeople * pricePerPerson
+          document.getElementById('total_price').value = totalPrice.toFixed(2)
+        } else {
+          document.getElementById('total_price').value = ''
+        }
+      
+        // Calculate remaining availability
+        //if (noOfPeople && initialAvailability >= noOfPeople) {
+        //  const remainingAvailability = initialAvailability - noOfPeople
+        //  document.getElementById('pack_availability').value = remainingAvailability
+        //} else {
+        //  document.getElementById('pack_availability').value = initialAvailability
+        //}
+      
+        if (noOfPeopleOrg > noOfPeople) {
+          const store = noOfPeopleOrg - noOfPeople
+          const remainingAvailability = initialAvailability + store
+          document.getElementById('pack_availability').value = remainingAvailability
+        } else {
+          const store = noOfPeople - noOfPeopleOrg
+          const remainingAvailability = initialAvailability - store
+          document.getElementById('pack_availability').value = remainingAvailability
+        }
+      
+      
+      }
+    </script>
+  </head>
+
+  <body>
+    <div class="admin-container">
+      <h2>Edit Package</h2>
+      <form action="{{ url_for('edit_package_booking', booking_id=booking.id, package_id=package.id) }}" method="POST">
+        <div class="form-group">
+          <label for="username">Username:</label>
+          <input type="text" id="username" name="username" value="{{ booking.user.username }}" disabled>
+        </div>
+        <div>
+          <label for="pack_flight_number">Flight Number:</label>
+          <input type="text" id="pack_flight_number" name="pack_flight_number" value="{{ package.pack_flight_number }}" required />
+        </div>
+        <div>
+          <label for="pack_flight_departure">Flight Departure:</label>
+          <input type="text" id="pack_flight_departure" name="pack_flight_departure" value="{{ package.pack_flight_departure }}" required />
+        </div>
+        <div>
+          <label for="pack_flight_destination">Flight Destination:</label>
+          <input type="text" id="pack_flight_destination" name="pack_flight_destination" value="{{ package.pack_flight_destination }}" required />
+        </div>
+        <div>
+          <label for="pack_hotel_name">Hotel Name:</label>
+          <input type="text" id="pack_hotel_name" name="pack_hotel_name" value="{{ package.pack_hotel_name }}" required />
+        </div>
+        <div>
+          <label for="pack_hotel_location">Hotel Location:</label>
+          <input type="text" id="pack_hotel_location" name="pack_hotel_location" value="{{ package.pack_hotel_location }}" required />
+        </div>
+        <div>
+          <label for="pack_availability">Availability:</label>
+          <input type="number" id="pack_availability" name="pack_availability" value="{{ package.pack_availability }}" />
+          <!-- Hidden field to store the initial availability -->
+          <input type="hidden" id="initial_availability" value="{{ package.pack_availability }}" />
+        </div>
+        <div>
+          <label for="pack_price">Price (/Person):</label>
+          <input type="number" id="pack_price" name="pack_price" value="{{ package.pack_price }}" required oninput="calculateTotalPriceAndAvailability()" />
+        </div>
+        <div>
+          <label for="num_of_people">Number of Person:</label>
+          <input type="number" id="num_of_people" name="num_of_people" value="{{ booking.num_of_people }}" min="1" required oninput="calculateTotalPriceAndAvailability()" />
+          <input type="hidden" id="num_of_people_org" name="num_of_people" value="{{ booking.num_of_people }}" min="1" />
+        </div>
+        <div>
+          <label for="total_price">Total Price:</label>
+          <input type="number" id="total_price" name="total_price" value="{{ booking.total_price }}" readonly />
+        </div>
+        <div>
+          <button type="submit"><b>Update Package</b></button>
+          <a href="{{ url_for('add_package') }}"><button type="button" class="cancel-button"><b>Cancel</b></button></a>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>

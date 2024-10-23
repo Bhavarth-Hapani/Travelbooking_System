@@ -1,0 +1,198 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Flight Editing</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='adminpanel_style.css') }}" />
+  </head>
+  <body>
+    {% block content %}
+      <style>
+        #edit-booking-form {
+          background-color: #f9f9f9;
+          padding: 20px;
+          margin-top: 20px;
+          border-radius: 8px;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+          max-width: 600px;
+          margin-left: auto;
+          margin-right: auto;
+        }
+        
+        #edit-booking-form h2 {
+          font-size: 24px;
+          color: #333;
+          text-align: center;
+          margin-bottom: 20px;
+        }
+        
+        #edit-booking-form label {
+          font-weight: bold;
+          display: block;
+          margin-bottom: 8px;
+          color: #555;
+        }
+        #edit-booking-form input[type='number'],
+        #edit-booking-form input[type='date'],
+        #edit-booking-form input[type='text'],
+        #edit-booking-form input[type='datetime-local'] {
+          width: 100%;
+          padding: 10px;
+          font-size: 16px;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          margin-bottom: 20px;
+          box-sizing: border-box;
+        }
+        
+        #edit-booking-form input[type='text'][disabled] {
+          background-color: #e9ecef;
+        }
+        
+        #edit-booking-form button,
+        #edit-booking-form a.btn {
+          background-color: #28a745;
+          color: white;
+          padding: 12px;
+          border: none;
+          border-radius: 5px;
+          font-size: 16px;
+          cursor: pointer;
+          width: 100%;
+          text-align: center;
+          transition: background-color 0.3s ease;
+          text-decoration: none;
+          display: block;
+          margin-top: 10px;
+        }
+        
+        #edit-booking-form button:hover,
+        #edit-booking-form a.btn:hover {
+          background-color: #218838;
+        }
+        
+        #edit-booking-form a.btn[style] {
+          background-color: #dc3545;
+        }
+        
+        #edit-booking-form a.btn[style]:hover {
+          background-color: #c82333;
+        }
+        
+        @media (max-width: 768px) {
+          #edit-booking-form {
+            padding: 15px;
+          }
+        
+          #edit-booking-form h2 {
+            font-size: 20px;
+          }
+        
+          #edit-booking-form input {
+            font-size: 14px;
+          }
+        
+          #edit-booking-form button,
+          #edit-booking-form a.btn {
+            padding: 10px;
+            font-size: 14px;
+          }
+        }
+      </style>
+
+      <h2>Edit Flight Booking</h2>
+
+      <form action="{{ url_for('edit_flight', booking_id=booking.id) }}" method="POST" id="edit-booking-form">
+        <div class="form-group">
+          <label for="user_id">User ID:</label>
+          <input type="text" id="user_id" name="user_id" value="{{ booking.user.id }}" disabled />
+        </div>
+
+        <div class="form-group">
+          <label for="username">Username:</label>
+          <input type="text" id="username" name="username" value="{{ booking.user.username }}" disabled />
+        </div>
+
+        <div class="form-group">
+          <label for="flight_number">Flight Number:</label>
+          <input type="text" id="flight_number" name="flight_number" value="{{ booking.flight.flight_number }}" required />
+        </div>
+
+        <div class="form-group">
+          <label for="departure">Departure:</label>
+          <input type="text" id="departure" name="departure" value="{{ booking.flight.departure }}" required />
+        </div>
+
+        <div class="form-group">
+          <label for="destination">Destination:</label>
+          <input type="text" id="destination" name="destination" value="{{ booking.flight.destination }}" required />
+        </div>
+
+        <div class="form-group">
+            <label for="departure_date">Departure Date:</label>
+            <input type="datetime-local" id="departure_date" name="departure_date" 
+                   value="{{ booking.flight.departure_date.strftime('%Y-%m-%dT%H:%M') }}" required />
+        </div>
+        
+        <div class="form-group">
+            <label for="return_date">Return Date:</label>
+            <input type="datetime-local" id="return_date" name="return_date" 
+                   value="{{ booking.flight.return_date.strftime('%Y-%m-%dT%H:%M') }}" required />
+        </div>
+
+        <div class="form-group">
+          <label for="availability">Availability:</label>
+          <input type="number" id="availability" name="availability" value="{{ booking.flight.availability }}" readonly />
+          <input type="hidden" id="initial_availability" name="initial_availability" value="{{ booking.flight.availability }}" readonly />
+        </div>
+
+        <div>
+          <label for="num_of_people">Number of Person:</label>
+          <input type="number" id="num_of_people" name="num_of_people" value="{{ booking.num_of_people }}" min="1" required oninput="calculateTotalPriceAndAvailability()" />
+          <input type="hidden" id="num_of_people_org" name="num_of_people_org" value="{{ booking.num_of_people }}" min="1" />
+        </div>
+
+        <div class="form-group">
+          <label for="total_price">Total Price:</label>
+          <input type="text" id="total_price" name="total_price" value="{{ booking.total_price }}" readonly />
+          <input type="hidden" id="price" name="price" value="{{ booking.flight.price }}" readonly />
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn"><b>Save Changes</b></button>
+          <a href="{{ url_for('add_flight') }}" class="btn" style="background-color: #2e84c9; width: 96%"><b>Cancel</b></a>
+        </div>
+      </form>
+      
+      <script>
+            function calculateTotalPriceAndAvailability() 
+            {
+              const noOfPeople = parseInt(document.getElementById('num_of_people').value)
+              const noOfPeopleOrg = parseInt(document.getElementById('num_of_people_org').value)
+              const pricePerPerson = parseFloat(document.getElementById('total_price').value)
+              const price = parseFloat(document.getElementById('price').value)
+              const initialAvailability = parseInt(document.getElementById('initial_availability').value)
+            
+              // Calculate total price
+              if (noOfPeople && pricePerPerson && price) 
+              {
+                const totalPrice = noOfPeople * price
+                document.getElementById('total_price').value = totalPrice.toFixed(2)
+              } 
+              if (noOfPeopleOrg > noOfPeople) 
+              {
+                const store = noOfPeopleOrg - noOfPeople
+                const remainingAvailability = initialAvailability + store
+                document.getElementById('availability').value = remainingAvailability
+              } 
+              else 
+              {
+                const store = noOfPeople - noOfPeopleOrg
+                const remainingAvailability = initialAvailability - store
+                document.getElementById('availability').value = remainingAvailability
+              }            
+            }
+          </script>
+{% endblock %}
+  </body>
+</html>

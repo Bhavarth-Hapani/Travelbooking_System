@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Book Package
+{% endblock %}
+
+{% block content %}
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Book Package</title>
+  </head>
+  <body>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        margin: 0;
+        padding: 0;
+      }
+      
+            
+      form {
+        max-width: 600px;
+        margin: 40px auto;
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+      }
+      
+      label {
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: black;
+        font-size: 16px;
+      }
+      
+      input[type='text'],
+      input[type='number'],
+      input[type='date'],
+      select {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+        font-size: 16px;
+      }
+      
+      input[type='submit'] {
+        background-color: #28a745;
+        color: white;
+        padding: 12px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s ease;
+        align-self: center;
+        width: 60%;
+      }
+      
+      input[type='submit']:hover {
+        background-color: #218838;
+      }
+      
+      p {
+        margin: 0;
+        padding: 0;
+      }
+      
+      #person-error {
+        color: red;
+        font-size: 0.9em;
+        display: none;
+      }
+      
+      .alert {
+        padding: 10px;
+        margin: 20px 0;
+        border-radius: 4px;
+      }
+      
+      .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+      }
+      
+      .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+      
+      .flash-message {
+        text-align: left;
+        margin-top: 20px;
+        width: 20%;
+      }
+      
+      select {
+        background-color: white;
+        border: 1px solid #ccc;
+        font-size: 16px;
+        color: #333;
+        height: 40px;
+        border-radius: 4px;
+        appearance: none;
+      }
+      
+      input[readonly] {
+        background-color: #f9f9f9;
+        cursor: not-allowed;
+      }
+      
+      @media (max-width: 600px) {
+        form {
+          padding: 20px;
+          max-width: 90%;
+        }
+      
+        input[type='submit'] {
+          width: 100%;
+        }
+      }
+    </style>&nbsp;
+    <h2>Book Your Travel Package</h2>
+    {% if message %}
+      <p style="color: green;">{{ message }}</p>
+    {% elif error %}
+      <p style="color: red;">{{ error }}</p>
+    {% endif %}
+
+    {% with messages=get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div>
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} flash-message">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Package booking form -->
+    <form action="{{ url_for('book_package') }}" method="POST">
+      <!-- Dropdown for selecting a package -->
+      <label for="package_select">Select Your Full Package:</label>
+      <select id="package_select" name="package_id" onchange="updatePackageDetails()">
+        <option value="" disabled selected>Select your package</option>
+        {% for package in packages %}
+          <option value="{{ package.id }}" data-price="{{ package.pack_price }}" data-availability="{{ package.pack_availability }}">Flight No: {{ package.pack_flight_number }} ({{ package.pack_flight_departure }} to {{ package.pack_flight_destination }}) + Hotel:
+            {{ package.pack_hotel_name }} ({{ package.pack_hotel_location }}) || Availability: {{ package.pack_availability }} || Price: {{ package.pack_price }}</option>
+        {% endfor %}
+      </select>
+
+      <!-- Package Price (readonly) -->
+      <label for="package_price">Price (/Person):</label>
+      <input type="text" id="package_price" name="price" readonly />
+
+      <!-- Booking Date Field -->
+      <label for="booking_date">Booking Date:</label>
+      <input type="date" id="booking_date" name="booking_date" required min="{{ current_date }}" />
+
+      <!-- No_of_Person Field -->
+      <label for="num_of_people">Number of People:</label>
+      <input type="number" id="num_of_people" name="num_of_people" min="1" onchange="validatePersons()" required />
+      <p id="person-error" style="color: red; display: none;">Number of people cannot exceed package availability.</p>
+
+      <!-- Total Price Field -->
+      <label for="total_price">Total Price:</label>
+      <input type="text" id="total_price" name="total_price" readonly />
+
+      <input type="submit" value="Book My Package" />
+    </form>
+
+    <!-- Display success or error message -->
+  </body>
+
+  <script>
+    let packageAvailability = 0
+    let packagePrice = 0
+    
+    function updatePackageDetails() {
+      const selectElement = document.getElementById('package_select')
+      const selectedOption = selectElement.options[selectElement.selectedIndex]
+    
+      packagePrice = parseFloat(selectedOption.getAttribute('data-price'))
+      packageAvailability = parseInt(selectedOption.getAttribute('data-availability'))
+    
+      // Set the price per person
+      document.getElementById('package_price').value = packagePrice ? packagePrice : 'Price not available'
+    
+      // Update total price if number of people is already entered
+      validatePersons()
+    }
+    
+    function validatePersons() {
+      const numOfPeople = parseInt(document.getElementById('num_of_people').value)
+    
+      if (numOfPeople > packageAvailability) {
+        document.getElementById('person-error').style.display = 'block'
+        document.getElementById('total_price').value = ''
+      } else {
+        document.getElementById('person-error').style.display = 'none'
+        calculateTotalPrice(numOfPeople)
+      }
+    }
+    
+    function calculateTotalPrice(numOfPeople) {
+      if (numOfPeople && packagePrice) {
+        const totalPrice = numOfPeople * packagePrice
+        document.getElementById('total_price').value = totalPrice.toFixed(2)
+      } else {
+        document.getElementById('total_price').value = ''
+      }
+    }
+    
+    window.setTimeout(function () {
+      const flashMessages = document.querySelectorAll('.flash-message')
+      flashMessages.forEach(function (flashMessage) {
+        flashMessage.style.display = 'none'
+      })
+    }, 3000)
+  </script>
+{% endblock %}

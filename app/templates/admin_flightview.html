@@ -1,0 +1,119 @@
+{% extends 'base_admin.html' %}
+
+{% block title %}
+  Admin Panel - Flight View
+{% endblock %}
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Flight Booking</title>
+  <link rel="admin_flightbooking.html" href="{{ url_for('static', filename='adminpanel_style.css') }}" />
+</head>
+{% block content %}
+  <body>
+    <div class="admin-container">
+      <h2>Add Flight</h2>
+      <form action="{{ url_for('add_flight') }}" method="POST">
+        <div>
+          <table style="border: 5px; color:blue; align-self: center;">
+            <tr>
+              <td>
+                <label for="flight_number">Flight Number:</label>
+                <input type="text" id="flight_number" name="flight_number" style="width: 100px;" required />
+              </td>
+              <td>
+                <label for="departure">Departure:</label>
+                <input type="text" id="departure" name="departure" required />
+              </td>
+              <td>
+                <label for="destination">Destination:</label>
+                <input type="text" id="destination" name="destination" required />
+              </td>
+
+              <td>
+                <label for="departure_date">Departure Date:</label>
+                <input type="date" id="departure_date" name="departure_date" required min="{{current_date}}">
+              </td>
+              <td>
+                <label for="return_date">Return Date:</label>
+                <input type="date" id="return_date" name="return_date" required min="{{current_date}}">
+              </td>
+              <td>
+                <label for="availability">Availability:</label>
+                <input type="text" id="availability" name="availability" style="width: 100px;" required />
+              </td>
+              <td>
+                <label for="price">Price(/Person):</label>
+                <input type="number" id="price" name="price" style="width: 100px;"required />
+              </td>
+              <td>
+                <button type="submit" style="width: 100px;"><b>Add Flight<b></button>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </form>
+      
+    </div>
+
+    <div class="admin-container">
+      <h2>User Flight Bookings</h2>
+
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 5px;">User ID</th>
+            <th>Usern Name</th>
+            <th>Flight Number</th>
+            <th>Departure</th>
+            <th>Destination</th>
+            <th>Departure Date</th>
+            <th>Return Date</th>
+            <th>Availability</th>
+            <th style="width: 5px;">No Of Person</th>
+            <th>Total Price</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for booking in book %}
+            <tr>
+              <td>{{ booking.user.id }}</td>
+              <td>{{ booking.user.username }}</td>
+              <td>{{ booking.flight.flight_number }}</td>
+              <td>{{ booking.flight.departure }}</td>
+              <td>{{ booking.flight.destination }}</td>
+              <td>{{ booking.flight.departure_date }}</td>
+              <td>{{ booking.flight.return_date }}</td>
+              <td>{{ booking.flight.availability }}</td>
+              <td>{{ booking.num_of_people }}</td>
+              <td>{{ booking.total_price }}</td>
+              <td>
+                {% if booking.status == True %}
+                  <a href="{{ url_for('edit_flight', booking_id=booking.id) }}" class="btn" style="display:inline;">Edit</a>    
+                  
+                  <form action="{{ url_for('admin_manage_user_booking') }}" method="POST">
+                    <input type="hidden" name="booking_id" value="{{ booking.id }}" />
+                    <input type="hidden" name="booking_type" value="flight" /><br/>
+                    <button type="submit" class="btn" style="display:inline;background-color: crimson;" onclick="return confirmCancel();"><b>Cancel </b></button> 
+                  </form>
+                  
+                {% else %}
+                  <a href="{{ url_for('delete_flight', booking_id=booking.id) }}" class="btn" style="display:inline; background-color: crimson;">Delete</a>
+                {% endif %}
+                <script>
+                  function confirmCancel() {
+                      return confirm("Are you sure you want to cancel the flight?");
+                    }
+                </script>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </body>
+{% endblock %}

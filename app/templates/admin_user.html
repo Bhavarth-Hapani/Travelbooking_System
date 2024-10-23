@@ -1,0 +1,41 @@
+{% extends 'base_admin.html' %}
+
+{% block title %}
+  Users
+{% endblock %}
+
+{% block content %}
+    <div class="form-container">
+        <h2>User Management</h2>
+        
+        <a href="{{ url_for('admin_add_user') }}">Add New User</a>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        <form action="{{ url_for('admin_edit_user', id=user.id) }}" method="GET" style="display:inline;">
+                            <button type="submit" class="btn">Edit</button>
+                        </form>&nbsp;
+                        <form action="{{ url_for('admin_delete_user', id=user.id) }}" method="POST" onsubmit="return confirm('Are you sure?');" style="display:inline;">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
